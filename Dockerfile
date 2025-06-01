@@ -134,11 +134,8 @@ docker ps --filter "label=${MDNS_LABEL}" --format '{{.ID}} {{.Names}}' | while I
 
     if [ -n "$domain" ] && [ -n "$ip" ]; then
         log "Registering: $domain -> $ip using avahi-publish-address"
-        if avahi-publish-address "$domain" "$ip"; then
-            log "Successfully published $domain -> $ip"
-        else
-            log "WARNING: Failed to publish $domain -> $ip. Check avahi-daemon logs."
-        fi
+        avahi-publish-address "$domain" "$ip" &
+        log "avahi-publish-address for $domain -> $ip launched in background."
     else
         log "Skipping container $cid ($cname): missing domain or IP (domain='${domain}', ip='${ip}')"
     fi
