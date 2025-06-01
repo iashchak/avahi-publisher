@@ -5,7 +5,7 @@ ARG  MDNS_LABEL_ARG=docker-mdns.host
 ENV  DOCKER_SOCKET=${DOCKER_SOCKET_ARG}
 ENV  MDNS_LABEL=${MDNS_LABEL_ARG}
 
-RUN apk add --no-cache bash avahi dbus docker-cli jq avahi-utils
+RUN apk add --no-cache bash avahi dbus docker-cli jq avahi-tools
 
 RUN cat <<'EOF' > /entrypoint.sh
 #!/usr/bin/env bash
