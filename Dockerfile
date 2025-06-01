@@ -15,6 +15,7 @@ DOCKER_SOCKET="${DOCKER_SOCKET:-/var/run/docker.sock}"
 MDNS_LABEL="${MDNS_LABEL:-docker-mdns.host}"
 
 dbus-daemon --system &
+sleep 1 # Wait for dbus to be ready
 avahi-daemon --daemonize --no-chroot
 
 docker ps --filter "label=${MDNS_LABEL}" --format '{{.ID}}' | while read -r cid; do
