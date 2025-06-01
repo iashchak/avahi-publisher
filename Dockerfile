@@ -11,24 +11,45 @@ RUN cat <<'EOF' > /entrypoint.sh
 #!/usr/bin/env bash
 set -euo pipefail
 
+log() {
+    echo "[avahi-publisher] $@"
+}
+
 DOCKER_SOCKET="${DOCKER_SOCKET:-/var/run/docker.sock}"
 MDNS_LABEL="${MDNS_LABEL:-docker-mdns.host}"
 
+log "Starting dbus-daemon..."
 dbus-daemon --system &
 sleep 1 # Wait for dbus to be ready
-avahi-daemon --daemonize --no-chroot
+log "dbus-daemon started."
 
+log "Starting avahi-daemon..."
+avahi-daemon --daemonize --no-chroot
+log "avahi-daemon started."
+
+log "Checking for Docker socket at $DOCKER_SOCKET..."
+if [ ! -S "$DOCKER_SOCKET" ]; then
+    log "ERROR: Docker socket not found at $DOCKER_SOCKET"
+    exit 1
+fi
+
+log "Listing containers with label: $MDNS_LABEL"
 docker ps --filter "label=${MDNS_LABEL}" --format '{{.ID}}' | while read -r cid; do
+    log "Inspecting container $cid"
     domain=$(docker inspect --format "{{ index .Config.Labels \"${MDNS_LABEL}\" }}" "$cid")
     ip=$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "$cid")
 
+    log "Container $cid: domain='$domain', ip='$ip'"
+
     if [ -n "$domain" ] && [ -n "$ip" ]; then
-        echo "Registering $domain with IP $ip"
+        log "Registering $domain with IP $ip"
         avahi-publish -S "$domain" "$ip"
     else
-        echo "Skipping container $cid: missing domain or IP"
+        log "Skipping container $cid: missing domain or IP"
     fi
 done
+
+log "All containers processed."
 EOF
 
 RUN chmod +x /entrypoint.sh
