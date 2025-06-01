@@ -18,6 +18,12 @@ log() {
 DOCKER_SOCKET="${DOCKER_SOCKET:-/var/run/docker.sock}"
 MDNS_LABEL="${MDNS_LABEL:-docker-mdns.host}"
 
+log "Ensuring /run/dbus directory exists with correct permissions..."
+if [ ! -d /run/dbus ]; then
+    mkdir -p /run/dbus
+fi
+chown messagebus:messagebus /run/dbus
+
 log "Starting dbus-daemon..."
 dbus-daemon --system &
 sleep 1 # Wait for dbus to be ready
