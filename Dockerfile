@@ -23,7 +23,7 @@ docker ps --filter "label=${MDNS_LABEL}" --format '{{.ID}}' | while read -r cid;
 
     if [ -n "$domain" ] && [ -n "$ip" ]; then
         echo "Registering $domain with IP $ip"
-        avahi-publish -S "$domain" -a "$ip" -e -v -d
+        avahi-publish -S "$domain" "$ip"
     else
         echo "Skipping container $cid: missing domain or IP"
     fi
