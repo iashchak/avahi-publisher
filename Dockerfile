@@ -14,6 +14,9 @@ set -euo pipefail
 DOCKER_SOCKET="${DOCKER_SOCKET:-/var/run/docker.sock}"
 MDNS_LABEL="${MDNS_LABEL:-docker-mdns.host}"
 
+dbus-daemon --system &
+avahi-daemon --daemonize --no-chroot
+
 docker ps --filter "label=${MDNS_LABEL}" --format '{{.ID}}' | while read -r cid; do
     domain=$(docker inspect --format "{{ index .Config.Labels \"${MDNS_LABEL}\" }}" "$cid")
     ip=$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "$cid")
